@@ -15,7 +15,7 @@ impl FromStr for TokenType {
     type Err = TokenTypeParseError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "" | "\n" => Ok(TokenType::EOF),
+            "" => Ok(TokenType::EOF),
             "(" => Ok(TokenType::LeftParen),
             ")" => Ok(TokenType::RightParen),
             _ => Err(TokenTypeParseError),
@@ -66,6 +66,9 @@ impl Token {
 
 fn tokenize(input: String) {
     for token in input.chars() {
+        if token == ' ' || token == '\n' {
+            return;
+        }
         let token_type = TokenType::from_str(&token.to_string());
         match token_type {
             Ok(token_type) => println!("{}", Token::new(token_type)),
