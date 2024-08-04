@@ -97,7 +97,7 @@ impl Token {
     }
 }
 
-fn tokenize(input: String) {
+fn tokenize(input: String, line: usize) {
     for token in input.chars() {
         if token == ' ' || token == '\n' {
             return;
@@ -105,7 +105,7 @@ fn tokenize(input: String) {
         let token_type = TokenType::from_str(&token.to_string());
         match token_type {
             Ok(token_type) => println!("{}", Token::new(token_type)),
-            Err(_) => eprintln!("wrong token"),
+            Err(_) => eprintln!("[line {}] Error: Unexpected character: {}", line, token),
         }
     }
 
@@ -130,7 +130,9 @@ fn main() {
                 String::new()
             });
 
-            tokenize(file_contents);
+            for line in file_contents.lines().enumerate() {
+                tokenize(line.1.to_owned(), line.0);
+            }
         }
         _ => {
             writeln!(io::stderr(), "Unknown command: {}", command).unwrap();
