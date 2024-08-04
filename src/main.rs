@@ -72,6 +72,9 @@ fn tokenize(input: String) {
             Err(_) => eprintln!("wrong token"),
         }
     }
+
+    let eof_token = Token::new(TokenType::EOF);
+    println!("{}", eof_token);
 }
 
 fn main() {
