@@ -8,6 +8,8 @@ use std::str::FromStr;
 enum TokenType {
     LeftParen,
     RightParen,
+    LeftBrace,
+    RightBrace,
     EOF,
 }
 struct TokenTypeParseError;
@@ -18,6 +20,8 @@ impl FromStr for TokenType {
             "" => Ok(TokenType::EOF),
             "(" => Ok(TokenType::LeftParen),
             ")" => Ok(TokenType::RightParen),
+            "{" => Ok(TokenType::LeftBrace),
+            "}" => Ok(TokenType::RightBrace),
             _ => Err(TokenTypeParseError),
         }
     }
@@ -28,6 +32,8 @@ impl TokenType {
         match self {
             &TokenType::LeftParen => "(".to_owned(),
             &TokenType::RightParen => ")".to_owned(),
+            &TokenType::LeftBrace => "{".to_owned(),
+            &TokenType::RightBrace => "}".to_owned(),
             &TokenType::EOF => "".to_owned(),
         }
     }
@@ -39,6 +45,8 @@ impl Display for TokenType {
             TokenType::EOF => "EOF",
             TokenType::LeftParen => "LEFT_PAREN",
             TokenType::RightParen => "RIGHT_PAREN",
+            TokenType::LeftBrace => "LEFT_BRACE",
+            TokenType::RightBrace => "RIGHT_BRACE",
         };
         write!(f, "{}", name)
     }
