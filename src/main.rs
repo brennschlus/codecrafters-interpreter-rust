@@ -11,6 +11,12 @@ enum TokenType {
     LeftBrace,
     RightBrace,
     EOF,
+    COMMA,
+    DOT,
+    MINUS,
+    PLUS,
+    SEMICOLON,
+    STAR,
 }
 struct TokenTypeParseError;
 impl FromStr for TokenType {
@@ -22,6 +28,12 @@ impl FromStr for TokenType {
             ")" => Ok(TokenType::RightParen),
             "{" => Ok(TokenType::LeftBrace),
             "}" => Ok(TokenType::RightBrace),
+            "," => Ok(TokenType::COMMA),
+            "." => Ok(TokenType::DOT),
+            "-" => Ok(TokenType::MINUS),
+            "+" => Ok(TokenType::PLUS),
+            ";" => Ok(TokenType::SEMICOLON),
+            "*" => Ok(TokenType::STAR),
             _ => Err(TokenTypeParseError),
         }
     }
@@ -29,13 +41,20 @@ impl FromStr for TokenType {
 
 impl TokenType {
     fn to_lexeme(&self) -> String {
-        match self {
-            &TokenType::LeftParen => "(".to_owned(),
-            &TokenType::RightParen => ")".to_owned(),
-            &TokenType::LeftBrace => "{".to_owned(),
-            &TokenType::RightBrace => "}".to_owned(),
-            &TokenType::EOF => "".to_owned(),
-        }
+        let lexeme = match self {
+            TokenType::LeftParen => "(",
+            TokenType::RightParen => ")",
+            TokenType::LeftBrace => "{",
+            TokenType::RightBrace => "}",
+            TokenType::EOF => "",
+            TokenType::COMMA => ",",
+            TokenType::DOT => ".",
+            TokenType::MINUS => "-",
+            TokenType::PLUS => "+",
+            TokenType::SEMICOLON => ";",
+            TokenType::STAR => "*",
+        };
+        lexeme.to_owned()
     }
 }
 
@@ -47,6 +66,12 @@ impl Display for TokenType {
             TokenType::RightParen => "RIGHT_PAREN",
             TokenType::LeftBrace => "LEFT_BRACE",
             TokenType::RightBrace => "RIGHT_BRACE",
+            TokenType::COMMA => "COMMA",
+            TokenType::DOT => "DOT",
+            TokenType::MINUS => "MINUS",
+            TokenType::PLUS => "PLUS",
+            TokenType::SEMICOLON => "SEMICOLON",
+            TokenType::STAR => "STAR",
         };
         write!(f, "{}", name)
     }
