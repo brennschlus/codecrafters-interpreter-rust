@@ -1,8 +1,10 @@
 use std::env;
-use std::fmt::Display;
+use std::fmt::{Display, Write};
 use std::fs;
-use std::io::{self, Write};
+use std::process::exit;
 use std::str::FromStr;
+
+use anyhow::Result;
 
 #[derive(Clone, Copy)]
 enum TokenType {
@@ -97,26 +99,32 @@ impl Token {
     }
 }
 
-fn tokenize(input: String, line: usize) {
+fn tokenize(input: String, line: usize) -> Vec<Result<String, String>> {
+    let mut token_vec: Vec<Result<String, String>> = vec![];
     for token in input.chars() {
         if token == ' ' || token == '\n' {
-            return;
+            continue;
         }
         let token_type = TokenType::from_str(&token.to_string());
         match token_type {
-            Ok(token_type) => println!("{}", Token::new(token_type)),
-            Err(_) => eprintln!("[line {}] Error: Unexpected character: {}", line, token),
-        }
+            Ok(token_type) => token_vec.push(Ok(format!("{}", Token::new(token_type)))),
+            Err(_) => token_vec.push(Err(format!(
+                "[line {}] Error: Unexpected character: {}",
+                line, token
+            ))),
+        };
     }
 
     let eof_token = Token::new(TokenType::EOF);
-    println!("{}", eof_token);
+    token_vec.push(Ok(format!("{}", eof_token)));
+
+    token_vec
 }
 
 fn main() {
     let args: Vec<String> = env::args().collect();
     if args.len() < 3 {
-        writeln!(io::stderr(), "Usage: {} tokenize <filename>", args[0]).unwrap();
+        eprintln!("Usage: {} tokenize <filename>", args[0]);
         return;
     }
 
@@ -126,16 +134,32 @@ fn main() {
     match command.as_str() {
         "tokenize" => {
             let file_contents = fs::read_to_string(filename).unwrap_or_else(|_| {
-                writeln!(io::stderr(), "Failed to read file {}", filename).unwrap();
+                eprintln!("Failed to read file {}", filename);
+
                 String::new()
             });
 
-            for line in file_contents.lines().enumerate() {
-                tokenize(line.1.to_owned(), line.0);
+            let token_lines: Vec<Result<String, String>> = file_contents
+                .lines()
+                .enumerate()
+                .map(|(number, line)| tokenize(line.to_owned(), number))
+                .flatten()
+                .collect();
+            let mut exit_code = 0;
+            for token_line in token_lines {
+                match token_line {
+                    Ok(line) => println!("{line}"),
+                    Err(err) => {
+                        exit_code = 65;
+                        println!("{err}")
+                    }
+                }
             }
+            exit(exit_code);
         }
         _ => {
-            writeln!(io::stderr(), "Unknown command: {}", command).unwrap();
+            eprintln!("Unknown command: {}", command);
+
             return;
         }
     }
