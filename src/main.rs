@@ -1,5 +1,5 @@
 use std::env;
-use std::fmt::{Display, Write};
+use std::fmt::Display;
 use std::fs;
 use std::process::exit;
 use std::str::FromStr;
@@ -115,9 +115,6 @@ fn tokenize(input: String, line: usize) -> Vec<Result<String, String>> {
         };
     }
 
-    let eof_token = Token::new(TokenType::EOF);
-    token_vec.push(Ok(format!("{}", eof_token)));
-
     token_vec
 }
 
@@ -142,7 +139,7 @@ fn main() {
             let token_lines: Vec<Result<String, String>> = file_contents
                 .lines()
                 .enumerate()
-                .map(|(number, line)| tokenize(line.to_owned(), number))
+                .map(|(number, line)| tokenize(line.to_owned(), number + 1))
                 .flatten()
                 .collect();
             let mut exit_code = 0;
@@ -151,10 +148,13 @@ fn main() {
                     Ok(line) => println!("{line}"),
                     Err(err) => {
                         exit_code = 65;
-                        println!("{err}")
+                        eprintln!("{err}")
                     }
                 }
             }
+            let eof_token = Token::new(TokenType::EOF);
+
+            println!("{eof_token}");
             exit(exit_code);
         }
         _ => {
