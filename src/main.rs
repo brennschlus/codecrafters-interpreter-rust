@@ -147,11 +147,21 @@ impl Token {
     }
 }
 
+fn skip_char(char: char) -> bool {
+    match char {
+        ' ' => true,
+        '\n' => true,
+        '\r' => true,
+        '\t' => true,
+        _ => false,
+    }
+}
+
 fn tokenize(input: String, line: usize) -> Vec<Result<String, String>> {
     let mut token_vec: Vec<Result<String, String>> = vec![];
     let mut iter = input.chars().peekable();
     while let Some(token) = iter.next() {
-        if token == ' ' || token == '\n' {
+        if skip_char(token) {
             continue;
         }
         if token == '/' && iter.peek() == Some(&'/') {
