@@ -1,6 +1,7 @@
 use std::env;
 use std::fmt::Display;
 use std::fs;
+use std::iter::Peekable;
 use std::process::exit;
 use std::str::FromStr;
 
@@ -19,6 +20,14 @@ enum TokenType {
     PLUS,
     SEMICOLON,
     STAR,
+    BANG,
+    BangEqual,
+    EQUAL,
+    EqualEqual,
+    GREATER,
+    GreaterEqual,
+    LESS,
+    LessEqual,
 }
 struct TokenTypeParseError;
 impl FromStr for TokenType {
@@ -55,8 +64,55 @@ impl TokenType {
             TokenType::PLUS => "+",
             TokenType::SEMICOLON => ";",
             TokenType::STAR => "*",
+            TokenType::BANG => "!",
+            TokenType::BangEqual => "!=",
+            TokenType::EQUAL => "=",
+            TokenType::EqualEqual => "==",
+            TokenType::GREATER => ">",
+            TokenType::GreaterEqual => ">=",
+            TokenType::LESS => "<",
+            TokenType::LessEqual => "=<",
         };
         lexeme.to_owned()
+    }
+    fn from_chars(
+        current: &char,
+        chars: &mut Peekable<std::str::Chars>,
+    ) -> Result<TokenType, TokenTypeParseError> {
+        match current {
+            '(' => Ok(TokenType::LeftParen),
+            ')' => Ok(TokenType::RightParen),
+            '{' => Ok(TokenType::LeftBrace),
+            '}' => Ok(TokenType::RightBrace),
+            ',' => Ok(TokenType::COMMA),
+            '.' => Ok(TokenType::DOT),
+            '-' => Ok(TokenType::MINUS),
+            '+' => Ok(TokenType::PLUS),
+            ';' => Ok(TokenType::SEMICOLON),
+            '*' => Ok(TokenType::STAR),
+            '!' if { chars.peek().is_some_and(|c| c == &'=') } => {
+                chars.next();
+                Ok(TokenType::BangEqual)
+            }
+            '!' => Ok(TokenType::BANG),
+            '=' if { chars.peek().is_some_and(|c| c == &'=') } => {
+                chars.next();
+                Ok(TokenType::EqualEqual)
+            }
+            '=' => Ok(TokenType::EQUAL),
+            '>' if { chars.peek().is_some_and(|c| c == &'=') } => {
+                chars.next();
+                Ok(TokenType::GreaterEqual)
+            }
+            '>' => Ok(TokenType::GREATER),
+            '<' if { chars.peek().is_some_and(|c| c == &'=') } => {
+                chars.next();
+                Ok(TokenType::LessEqual)
+            }
+            '<' => Ok(TokenType::LESS),
+
+            _ => Err(TokenTypeParseError),
+        }
     }
 }
 
@@ -74,6 +130,14 @@ impl Display for TokenType {
             TokenType::PLUS => "PLUS",
             TokenType::SEMICOLON => "SEMICOLON",
             TokenType::STAR => "STAR",
+            TokenType::BANG => "BANG",
+            TokenType::BangEqual => "BANGE_QUAL",
+            TokenType::EQUAL => "EQUAL",
+            TokenType::EqualEqual => "EQUAL_EQUAL",
+            TokenType::GREATER => "GREATER",
+            TokenType::GreaterEqual => "GREATER_EQUAL",
+            TokenType::LESS => "LESS",
+            TokenType::LessEqual => "LESS_EQUAL",
         };
         write!(f, "{}", name)
     }
@@ -101,11 +165,12 @@ impl Token {
 
 fn tokenize(input: String, line: usize) -> Vec<Result<String, String>> {
     let mut token_vec: Vec<Result<String, String>> = vec![];
-    for token in input.chars() {
+    let mut iter = input.chars().peekable();
+    while let Some(token) = iter.next() {
         if token == ' ' || token == '\n' {
             continue;
         }
-        let token_type = TokenType::from_str(&token.to_string());
+        let token_type = TokenType::from_chars(&token, &mut iter);
         match token_type {
             Ok(token_type) => token_vec.push(Ok(format!("{}", Token::new(token_type)))),
             Err(_) => token_vec.push(Err(format!(
