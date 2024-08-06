@@ -3,7 +3,6 @@ use std::fmt::Display;
 use std::fs;
 use std::iter::Peekable;
 use std::process::exit;
-use std::str::FromStr;
 
 use anyhow::Result;
 
@@ -28,27 +27,9 @@ enum TokenType {
     GreaterEqual,
     LESS,
     LessEqual,
+    Slash,
 }
 struct TokenTypeParseError;
-impl FromStr for TokenType {
-    type Err = TokenTypeParseError;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "" => Ok(TokenType::EOF),
-            "(" => Ok(TokenType::LeftParen),
-            ")" => Ok(TokenType::RightParen),
-            "{" => Ok(TokenType::LeftBrace),
-            "}" => Ok(TokenType::RightBrace),
-            "," => Ok(TokenType::COMMA),
-            "." => Ok(TokenType::DOT),
-            "-" => Ok(TokenType::MINUS),
-            "+" => Ok(TokenType::PLUS),
-            ";" => Ok(TokenType::SEMICOLON),
-            "*" => Ok(TokenType::STAR),
-            _ => Err(TokenTypeParseError),
-        }
-    }
-}
 
 impl TokenType {
     fn to_lexeme(&self) -> String {
@@ -72,6 +53,7 @@ impl TokenType {
             TokenType::GreaterEqual => ">=",
             TokenType::LESS => "<",
             TokenType::LessEqual => "<=",
+            TokenType::Slash => "/",
         };
         lexeme.to_owned()
     }
@@ -110,6 +92,7 @@ impl TokenType {
                 Ok(TokenType::LessEqual)
             }
             '<' => Ok(TokenType::LESS),
+            '/' => Ok(TokenType::Slash),
 
             _ => Err(TokenTypeParseError),
         }
@@ -138,6 +121,7 @@ impl Display for TokenType {
             TokenType::GreaterEqual => "GREATER_EQUAL",
             TokenType::LESS => "LESS",
             TokenType::LessEqual => "LESS_EQUAL",
+            TokenType::Slash => "SLASH",
         };
         write!(f, "{}", name)
     }
@@ -169,6 +153,9 @@ fn tokenize(input: String, line: usize) -> Vec<Result<String, String>> {
     while let Some(token) = iter.next() {
         if token == ' ' || token == '\n' {
             continue;
+        }
+        if token == '/' && iter.peek() == Some(&'/') {
+            break;
         }
         let token_type = TokenType::from_chars(&token, &mut iter);
         match token_type {
