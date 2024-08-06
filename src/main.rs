@@ -131,7 +131,7 @@ impl Display for TokenType {
             TokenType::SEMICOLON => "SEMICOLON",
             TokenType::STAR => "STAR",
             TokenType::BANG => "BANG",
-            TokenType::BangEqual => "BANGE_QUAL",
+            TokenType::BangEqual => "BANG_EQUAL",
             TokenType::EQUAL => "EQUAL",
             TokenType::EqualEqual => "EQUAL_EQUAL",
             TokenType::GREATER => "GREATER",
