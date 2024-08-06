@@ -71,7 +71,7 @@ impl TokenType {
             TokenType::GREATER => ">",
             TokenType::GreaterEqual => ">=",
             TokenType::LESS => "<",
-            TokenType::LessEqual => "=<",
+            TokenType::LessEqual => "<=",
         };
         lexeme.to_owned()
     }
