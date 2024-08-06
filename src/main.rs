@@ -29,6 +29,7 @@ enum TokenType {
     LessEqual,
     Slash,
     String(String),
+    Number(f64),
 }
 enum TokenTypeParseError {
     UnexpectedCharacter,
@@ -59,6 +60,7 @@ impl TokenType {
             TokenType::LessEqual => format!("<= null"),
             TokenType::Slash => format!("/ null"),
             TokenType::String(s) => format!("\"{s}\" {s}"),
+            TokenType::Number(n) => format!("{n} {:?}", n),
         };
         lexeme.to_owned()
     }
@@ -110,6 +112,38 @@ impl TokenType {
 
                 Err(TokenTypeParseError::UnterminatedString)
             }
+
+            c if c.is_digit(10) => {
+                let mut number_string = String::new();
+                number_string.push(*c);
+
+                while let Some(n) = chars.next_if(|x| x.is_digit(10)) {
+                    number_string.push(n);
+                }
+
+                'rest: while let Some(&n) = chars.peek() {
+                    if n == '.' && chars.clone().nth(1).is_some_and(|n| n.is_digit(10)) {
+                        number_string.push(n);
+                        chars.next();
+                        while let Some(rest) = chars.peek() {
+                            if rest.is_digit(10) {
+                                number_string.push(*rest);
+                                chars.next();
+                            } else {
+                                return Ok(TokenType::Number(
+                                    number_string.parse::<f64>().unwrap_or(0.0),
+                                ));
+                            }
+                        }
+                    } else {
+                        break 'rest;
+                    }
+                }
+
+                Ok(TokenType::Number(
+                    number_string.parse::<f64>().unwrap_or(0.0),
+                ))
+            }
             _ => Err(TokenTypeParseError::UnexpectedCharacter),
         }
     }
@@ -139,6 +173,7 @@ impl Display for TokenType {
             TokenType::LessEqual => "LESS_EQUAL",
             TokenType::Slash => "SLASH",
             TokenType::String(_) => "STRING",
+            TokenType::Number(_) => "NUMBER",
         };
         write!(f, "{}", name)
     }
