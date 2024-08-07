@@ -29,7 +29,8 @@ enum TokenType {
     LessEqual,
     Slash,
     String(String),
-    Number(f64),
+    Number(String),
+    IDENTIFIER(String),
 }
 enum TokenTypeParseError {
     UnexpectedCharacter,
@@ -60,10 +61,16 @@ impl TokenType {
             TokenType::LessEqual => format!("<= null"),
             TokenType::Slash => format!("/ null"),
             TokenType::String(s) => format!("\"{s}\" {s}"),
-            TokenType::Number(n) => format!("{n} {:?}", n),
+            TokenType::Number(n) => {
+                let s = format_number_string(n);
+
+                format!("{n} {s}")
+            }
+            TokenType::IDENTIFIER(s) => format!("{s} null"),
         };
         lexeme.to_owned()
     }
+
     fn from_chars(
         current: &char,
         chars: &mut Peekable<std::str::Chars>,
@@ -130,9 +137,7 @@ impl TokenType {
                                 number_string.push(*rest);
                                 chars.next();
                             } else {
-                                return Ok(TokenType::Number(
-                                    number_string.parse::<f64>().unwrap_or(0.0),
-                                ));
+                                break 'rest;
                             }
                         }
                     } else {
@@ -140,13 +145,32 @@ impl TokenType {
                     }
                 }
 
-                Ok(TokenType::Number(
-                    number_string.parse::<f64>().unwrap_or(0.0),
-                ))
+                Ok(TokenType::Number(number_string))
+            }
+            c if c.is_alphabetic() || c == &'_' => {
+                let mut identifier = String::from(*c);
+                while let Some(char) = chars.next_if(|c| c.is_alphanumeric() || c == &'_') {
+                    identifier.push(char);
+                }
+                Ok(TokenType::IDENTIFIER(identifier))
             }
             _ => Err(TokenTypeParseError::UnexpectedCharacter),
         }
     }
+}
+fn format_number_string(string: &String) -> String {
+    let mut s = String::from(string);
+    if !s.contains('.') {
+        s.push_str(".0")
+    } else if s.contains(".00") {
+        let pos = s.find('.').unwrap();
+
+        let striped = s.split_at(pos);
+        let mut s = String::from(striped.0);
+        s.push_str(".0");
+        return s;
+    }
+    s
 }
 
 impl Display for TokenType {
@@ -174,6 +198,7 @@ impl Display for TokenType {
             TokenType::Slash => "SLASH",
             TokenType::String(_) => "STRING",
             TokenType::Number(_) => "NUMBER",
+            TokenType::IDENTIFIER(_) => "IDENTIFIER",
         };
         write!(f, "{}", name)
     }
