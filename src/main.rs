@@ -31,6 +31,22 @@ enum TokenType {
     String(String),
     Number(String),
     IDENTIFIER(String),
+    AND,
+    CLASS,
+    ELSE,
+    FALSE,
+    FOR,
+    FUN,
+    IF,
+    NIL,
+    OR,
+    PRINT,
+    RETURN,
+    SUPER,
+    THIS,
+    TRUE,
+    VAR,
+    WHILE,
 }
 enum TokenTypeParseError {
     UnexpectedCharacter,
@@ -67,6 +83,22 @@ impl TokenType {
                 format!("{n} {s}")
             }
             TokenType::IDENTIFIER(s) => format!("{s} null"),
+            TokenType::AND => format!("and null"),
+            TokenType::CLASS => format!("class null"),
+            TokenType::ELSE => format!("else null"),
+            TokenType::FALSE => format!("false null"),
+            TokenType::FOR => format!("for null"),
+            TokenType::FUN => format!("fun null"),
+            TokenType::IF => format!("if null"),
+            TokenType::NIL => format!("nil null"),
+            TokenType::OR => format!("or null"),
+            TokenType::PRINT => format!("print null"),
+            TokenType::RETURN => format!("return null"),
+            TokenType::SUPER => format!("super null"),
+            TokenType::THIS => format!("this null"),
+            TokenType::TRUE => format!("true null"),
+            TokenType::VAR => format!("var null"),
+            TokenType::WHILE => format!("while null"),
         };
         lexeme.to_owned()
     }
@@ -152,7 +184,26 @@ impl TokenType {
                 while let Some(char) = chars.next_if(|c| c.is_alphanumeric() || c == &'_') {
                     identifier.push(char);
                 }
-                Ok(TokenType::IDENTIFIER(identifier))
+                let token_type = match identifier.as_str() {
+                    "and" => TokenType::AND,
+                    "class" => TokenType::CLASS,
+                    "else" => TokenType::ELSE,
+                    "false" => TokenType::FALSE,
+                    "for" => TokenType::FOR,
+                    "fun" => TokenType::FUN,
+                    "if" => TokenType::IF,
+                    "nil" => TokenType::NIL,
+                    "or" => TokenType::OR,
+                    "print" => TokenType::PRINT,
+                    "return" => TokenType::RETURN,
+                    "super" => TokenType::SUPER,
+                    "this" => TokenType::THIS,
+                    "true" => TokenType::TRUE,
+                    "var" => TokenType::VAR,
+                    "while" => TokenType::WHILE,
+                    _ => TokenType::IDENTIFIER(identifier),
+                };
+                Ok(token_type)
             }
             _ => Err(TokenTypeParseError::UnexpectedCharacter),
         }
@@ -199,6 +250,22 @@ impl Display for TokenType {
             TokenType::String(_) => "STRING",
             TokenType::Number(_) => "NUMBER",
             TokenType::IDENTIFIER(_) => "IDENTIFIER",
+            TokenType::AND => "AND",
+            TokenType::CLASS => "CLASS",
+            TokenType::ELSE => "ELSE",
+            TokenType::FALSE => "FALSE",
+            TokenType::FOR => "FOR",
+            TokenType::FUN => "FUN",
+            TokenType::IF => "IF",
+            TokenType::NIL => "NIL",
+            TokenType::OR => "OR",
+            TokenType::PRINT => "PRINT",
+            TokenType::RETURN => "RETURN",
+            TokenType::SUPER => "SUPER",
+            TokenType::THIS => "THIS",
+            TokenType::TRUE => "TRUE",
+            TokenType::VAR => "VAR",
+            TokenType::WHILE => "WHILE",
         };
         write!(f, "{}", name)
     }
