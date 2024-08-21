@@ -2,15 +2,6 @@ use std::fmt::Display;
 use std::iter::Peekable;
 
 use anyhow::Result;
-struct Parser {
-    content: String,
-}
-
-impl Parser {
-    fn new(content: String) -> Parser {
-        Parser { content }
-    }
-}
 
 #[derive(Clone)]
 pub enum TokenType {
