@@ -27,8 +27,7 @@ fn main() {
             let token_lines: Vec<Result<String, String>> = file_contents
                 .lines()
                 .enumerate()
-                .map(|(number, line)| tokenize(line.to_owned(), number + 1))
-                .flatten()
+                .flat_map(|(number, line)| tokenize(line.to_owned(), number + 1))
                 .collect();
             let mut exit_code = 0;
             for token_line in token_lines {
@@ -47,8 +46,6 @@ fn main() {
         }
         _ => {
             eprintln!("Unknown command: {}", command);
-
-            return;
         }
     }
 }

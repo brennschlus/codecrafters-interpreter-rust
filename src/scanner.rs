@@ -90,7 +90,7 @@ impl TokenType {
             '\"' => {
                 let mut content = String::new();
 
-                while let Some(c) = chars.next() {
+                for c in chars {
                     if c == '\"' {
                         return Ok(TokenType::String(content));
                     }
@@ -100,19 +100,19 @@ impl TokenType {
                 Err(TokenTypeParseError::UnterminatedString)
             }
 
-            c if c.is_digit(10) => {
+            c if c.is_ascii_digit() => {
                 let mut number_string = String::from(*c);
 
-                while let Some(n) = chars.next_if(|x| x.is_digit(10)) {
+                while let Some(n) = chars.next_if(|x| x.is_ascii_digit()) {
                     number_string.push(n);
                 }
 
                 'rest: while let Some(&n) = chars.peek() {
-                    if n == '.' && chars.clone().nth(1).is_some_and(|n| n.is_digit(10)) {
+                    if n == '.' && chars.clone().nth(1).is_some_and(|n| n.is_ascii_digit()) {
                         number_string.push(n);
                         chars.next();
                         while let Some(rest) = chars.peek() {
-                            if rest.is_digit(10) {
+                            if rest.is_ascii_digit() {
                                 number_string.push(*rest);
                                 chars.next();
                             } else {
@@ -194,8 +194,8 @@ impl Display for TokenType {
             TokenType::Less => "LESS < null",
             TokenType::LessEqual => "LESS_EQUAL <= null",
             TokenType::Slash => "SLASH / null",
-            TokenType::String(s) => &(format!("STRING \"{s}\" {s}")),
-            TokenType::Number(n) => &format!("NUMBER {n} {}", format_number_string(n)),
+            TokenType::String(s) => &format!("STRING \"{s}\" {s}"),
+            TokenType::Number(n) => &(format!("NUMBER {n} {}", format_number_string(n))),
             TokenType::Identifier(i) => &format!("IDENTIFIER {i} null"),
             TokenType::And => "AND and null",
             TokenType::Class => "CLASS class null",
@@ -235,13 +235,7 @@ impl Token {
 }
 
 fn skip_char(char: char) -> bool {
-    match char {
-        ' ' => true,
-        '\n' => true,
-        '\r' => true,
-        '\t' => true,
-        _ => false,
-    }
+    matches!(char, ' ' | '\n' | '\r' | '\t')
 }
 
 pub fn tokenize(input: String, line: usize) -> Vec<Result<String, String>> {
