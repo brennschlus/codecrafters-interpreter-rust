@@ -1,6 +1,5 @@
 pub mod scanner;
 
-use anyhow::Result;
 use scanner::{tokenize, Token, TokenType};
 use std::env;
 use std::fs;
