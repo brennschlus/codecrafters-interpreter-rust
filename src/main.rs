@@ -24,11 +24,10 @@ fn main() {
                 String::new()
             });
 
-            let token_lines: Vec<Result<String, String>> = file_contents
+            let token_lines = file_contents
                 .lines()
                 .enumerate()
-                .flat_map(|(number, line)| tokenize(line.to_owned(), number + 1))
-                .collect();
+                .flat_map(|(number, line)| tokenize(line.to_owned(), number + 1));
             let mut exit_code = 0;
             for token_line in token_lines {
                 match token_line {
