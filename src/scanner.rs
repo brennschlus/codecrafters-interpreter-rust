@@ -173,6 +173,7 @@ fn format_number_string(string: &String) -> String {
 
 impl Display for TokenType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let temp_string: String;
         let name = match &self {
             TokenType::Eof => "EOF  null",
             TokenType::LeftParen => "LEFT_PAREN ( null",
@@ -194,9 +195,18 @@ impl Display for TokenType {
             TokenType::Less => "LESS < null",
             TokenType::LessEqual => "LESS_EQUAL <= null",
             TokenType::Slash => "SLASH / null",
-            TokenType::String(s) => &format!("STRING \"{s}\" {s}"),
-            TokenType::Number(n) => &(format!("NUMBER {n} {}", format_number_string(n))),
-            TokenType::Identifier(i) => &format!("IDENTIFIER {i} null"),
+            TokenType::String(s) => {
+                temp_string = format!("STRING \"{s}\" {s}");
+                temp_string.as_str()
+            }
+            TokenType::Number(n) => {
+                temp_string = format!("NUMBER {n} {}", format_number_string(n));
+                temp_string.as_str()
+            }
+            TokenType::Identifier(i) => {
+                temp_string = format!("IDENTIFIER {i} null");
+                temp_string.as_str()
+            }
             TokenType::And => "AND and null",
             TokenType::Class => "CLASS class null",
             TokenType::Else => "ELSE else null",
