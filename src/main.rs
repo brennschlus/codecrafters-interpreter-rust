@@ -40,7 +40,7 @@ fn main() {
                     }
                 }
             }
-            let eof_token = Token::new(TokenType::EOF);
+            let eof_token = Token::new(TokenType::Eof);
 
             println!("{eof_token}");
             exit(exit_code);
