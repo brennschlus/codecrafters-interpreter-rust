@@ -238,7 +238,7 @@ fn skip_char(char: char) -> bool {
     matches!(char, ' ' | '\n' | '\r' | '\t')
 }
 
-pub fn tokenize(input: String, line: usize) -> Vec<Result<String, String>> {
+pub fn tokenize(input: &str, line: usize) -> Vec<Result<String, String>> {
     let mut token_vec: Vec<Result<String, String>> = vec![];
     let mut iter = input.chars().peekable();
     while let Some(token) = iter.next() {

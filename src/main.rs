@@ -26,7 +26,7 @@ fn main() {
             let token_lines = file_contents
                 .lines()
                 .enumerate()
-                .flat_map(|(number, line)| tokenize(line.to_owned(), number + 1));
+                .flat_map(|(number, line)| tokenize(line, number + 1));
             let mut exit_code = 0;
             for token_line in token_lines {
                 match token_line {
