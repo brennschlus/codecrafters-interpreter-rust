@@ -2,20 +2,6 @@ use std::fmt::Display;
 
 use crate::scanner::TokenType;
 
-pub struct Parser {
-    tokens: Vec<TokenType>,
-}
-
-impl Parser {
-    fn parse(&self) -> Vec<Result<Expr, String>> {
-        let mut res: Vec<Result<Expr, String>> = Vec::new();
-        for token in &self.tokens {
-            res.push(primary(token));
-        }
-        res
-    }
-}
-
 pub fn primary(token: &TokenType) -> Result<Expr, String> {
     match token {
         TokenType::True => Ok(Expr::Literal {
@@ -27,6 +13,12 @@ pub fn primary(token: &TokenType) -> Result<Expr, String> {
         TokenType::Nil => Ok(Expr::Literal {
             value: Object::String("nil".to_owned()),
         }),
+        TokenType::Number(number) => {
+            let parsed_number = number.parse::<f64>().unwrap_or(0.0);
+            Ok(Expr::Literal {
+                value: Object::Number(parsed_number),
+            })
+        }
         _ => Err("Wrong expression".to_owned()),
     }
 }
@@ -94,17 +86,18 @@ impl Display for Expr {
         write!(f, "{}", name)
     }
 }
-enum Object {
+pub enum Object {
     String(String),
+    Number(f64),
 }
 
 impl Display for Object {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let temp_str: String;
-
         let name = match self {
-            Object::String(s) => {
-                temp_str = format!("{s}");
+            Object::String(s) => s,
+            Object::Number(number) => {
+                temp_str = format!("{number:?}");
                 &temp_str
             }
         };

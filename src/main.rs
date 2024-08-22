@@ -1,10 +1,8 @@
 pub mod parser;
 pub mod scanner;
 
-use parser::{primary, Expr};
-use scanner::TokenTypeParseError;
+use parser::primary;
 use scanner::{tokenize, Token, TokenType};
-use std::char::ParseCharError;
 use std::env;
 use std::fs;
 use std::process::exit;

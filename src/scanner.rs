@@ -156,7 +156,7 @@ impl TokenType {
         }
     }
 }
-fn format_number_string(string: &String) -> String {
+pub fn format_number_string(string: &String) -> String {
     let mut s = String::from(string);
     if !s.contains('.') {
         s.push_str(".0")
