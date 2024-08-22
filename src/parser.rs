@@ -19,6 +19,9 @@ pub fn primary(token: &TokenType) -> Result<Expr, String> {
                 value: Object::Number(parsed_number),
             })
         }
+        TokenType::String(s) => Ok(Expr::Literal {
+            value: Object::String(s.to_string()),
+        }),
         _ => Err("Wrong expression".to_owned()),
     }
 }
