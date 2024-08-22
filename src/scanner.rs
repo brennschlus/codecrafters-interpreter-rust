@@ -45,7 +45,7 @@ pub enum TokenType {
     Var,
     While,
 }
-enum TokenTypeParseError {
+pub(crate) enum TokenTypeParseError {
     UnexpectedCharacter,
     UnterminatedString,
 }
@@ -187,7 +187,7 @@ impl Display for TokenType {
             TokenType::Semicolon => "SEMICOLON ; null",
             TokenType::Star => "STAR * null",
             TokenType::Bang => "BANG ! null",
-            TokenType::BangEqual => "BANG_EQUAL = null",
+            TokenType::BangEqual => "BANG_EQUAL != null",
             TokenType::Equal => "EQUAL = null",
             TokenType::EqualEqual => "EQUAL_EQUAL == null",
             TokenType::Greater => "GREATER > null",
@@ -229,7 +229,7 @@ impl Display for TokenType {
 }
 
 pub struct Token {
-    token_type: TokenType,
+    pub token_type: TokenType,
 }
 
 impl Display for Token {
@@ -248,8 +248,8 @@ fn skip_char(char: char) -> bool {
     matches!(char, ' ' | '\n' | '\r' | '\t')
 }
 
-pub fn tokenize(input: &str, line: usize) -> Vec<Result<String, String>> {
-    let mut token_vec: Vec<Result<String, String>> = vec![];
+pub fn tokenize(input: &str, line: usize) -> Vec<Result<Token, String>> {
+    let mut token_vec: Vec<Result<Token, String>> = vec![];
     let mut iter = input.chars().peekable();
     while let Some(token) = iter.next() {
         if skip_char(token) {
@@ -260,7 +260,7 @@ pub fn tokenize(input: &str, line: usize) -> Vec<Result<String, String>> {
         }
         let token_type = TokenType::from_chars(&token, &mut iter);
         match token_type {
-            Ok(token_type) => token_vec.push(Ok(format!("{}", Token::new(token_type)))),
+            Ok(token_type) => token_vec.push(Ok(Token::new(token_type))),
             Err(TokenTypeParseError::UnexpectedCharacter) => token_vec.push(Err(format!(
                 "[line {}] Error: Unexpected character: {}",
                 line, token

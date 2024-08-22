@@ -1,7 +1,10 @@
 pub mod parser;
 pub mod scanner;
 
+use parser::{primary, Expr};
+use scanner::TokenTypeParseError;
 use scanner::{tokenize, Token, TokenType};
+use std::char::ParseCharError;
 use std::env;
 use std::fs;
 use std::process::exit;
@@ -20,13 +23,13 @@ fn main() {
 
         String::new()
     });
+    let token_lines = file_contents
+        .lines()
+        .enumerate()
+        .flat_map(|(number, line)| tokenize(line, number + 1));
 
     match command.as_str() {
         "tokenize" => {
-            let token_lines = file_contents
-                .lines()
-                .enumerate()
-                .flat_map(|(number, line)| tokenize(line, number + 1));
             let mut exit_code = 0;
             for token_line in token_lines {
                 match token_line {
@@ -43,7 +46,17 @@ fn main() {
             exit(exit_code);
         }
         "parse" => {
-            println!("true")
+            let exprs = token_lines.map(|token| match token {
+                Ok(t) => primary(&t.token_type),
+                Err(s) => Err(s),
+            });
+
+            for expr in exprs {
+                match expr {
+                    Ok(expr) => println!("{expr}"),
+                    Err(_) => eprintln!("error"),
+                }
+            }
         }
         _ => {
             eprintln!("Unknown command: {}", command);
