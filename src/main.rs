@@ -1,3 +1,4 @@
+pub mod parser;
 pub mod scanner;
 
 use scanner::{tokenize, Token, TokenType};
@@ -14,15 +15,14 @@ fn main() {
 
     let command = &args[1];
     let filename = &args[2];
+    let file_contents = fs::read_to_string(filename).unwrap_or_else(|_| {
+        eprintln!("Failed to read file {}", filename);
+
+        String::new()
+    });
 
     match command.as_str() {
         "tokenize" => {
-            let file_contents = fs::read_to_string(filename).unwrap_or_else(|_| {
-                eprintln!("Failed to read file {}", filename);
-
-                String::new()
-            });
-
             let token_lines = file_contents
                 .lines()
                 .enumerate()
@@ -41,6 +41,9 @@ fn main() {
 
             println!("{eof_token}");
             exit(exit_code);
+        }
+        "parse" => {
+            println!("true")
         }
         _ => {
             eprintln!("Unknown command: {}", command);
