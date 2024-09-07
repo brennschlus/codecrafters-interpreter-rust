@@ -21,7 +21,7 @@ fn main() {
 
         String::new()
     });
-    let token_lines = file_contents
+    let mut token_lines = file_contents
         .lines()
         .enumerate()
         .flat_map(|(number, line)| tokenize(line, number + 1))
@@ -45,7 +45,7 @@ fn main() {
             exit(exit_code);
         }
         "parse" => {
-            let exprs = primary(token_lines);
+            let exprs = primary(&mut token_lines);
 
             for expr in exprs {
                 match expr {

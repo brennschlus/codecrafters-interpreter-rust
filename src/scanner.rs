@@ -3,7 +3,7 @@ use std::iter::Peekable;
 
 use anyhow::Result;
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq, Eq)]
 pub enum Token {
     LeftParen,
     RightParen,

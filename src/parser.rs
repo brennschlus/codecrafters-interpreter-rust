@@ -2,46 +2,14 @@ use std::{fmt::Display, iter::Peekable};
 
 use crate::scanner::Token;
 
-pub fn primary<T>(token_iter: Peekable<T>) -> Vec<Result<Expr, String>>
+pub fn primary<T>(token_iter: &mut Peekable<T>) -> Vec<Result<Expr, String>>
 where
     T: Iterator<Item = Result<Token, String>>,
 {
-    let mut exprs: Vec<_> = Vec::new();
+    let mut exprs: Vec<Result<Expr, String>> = Vec::new();
 
-    for token_result in token_iter {
-        if let Ok(token) = token_result {
-            let expr = match token {
-                Token::True => Ok(Expr::Literal {
-                    value: Object::String("true".to_owned()),
-                }),
-                Token::False => Ok(Expr::Literal {
-                    value: Object::String("false".to_owned()),
-                }),
-                Token::Nil => Ok(Expr::Literal {
-                    value: Object::String("nil".to_owned()),
-                }),
-                Token::Number(number) => {
-                    let parsed_number = number.parse::<f64>().unwrap_or(0.0);
-                    Ok(Expr::Literal {
-                        value: Object::Number(parsed_number),
-                    })
-                }
-                Token::String(s) => Ok(Expr::Literal {
-                    value: Object::String(s.to_string()),
-                }),
-                Token::LeftParen => {
-                    let expr = Expr::Literal {
-                        value: Object::String("true".to_owned()),
-                    };
-
-                    Ok(Expr::Grouping {
-                        expression: Box::new(expr),
-                    })
-                }
-                _ => Err("Wrong expression".to_owned()),
-            };
-            exprs.push(expr)
-        }
+    while let Some(token) = token_iter.next() {
+        exprs.push(token.and_then(|token| Expr::from_tokens(token_iter, token)));
     }
     exprs
 }
@@ -96,12 +64,56 @@ pub enum Expr {
     },
 }
 
+impl Expr {
+    fn from_tokens<T>(token_iter: &mut Peekable<T>, token: Token) -> Result<Expr, String>
+    where
+        T: Iterator<Item = Result<Token, String>>,
+    {
+        match token {
+            Token::True => Ok(Expr::Literal {
+                value: Object::String("true".to_owned()),
+            }),
+            Token::False => Ok(Expr::Literal {
+                value: Object::String("false".to_owned()),
+            }),
+            Token::Nil => Ok(Expr::Literal {
+                value: Object::String("nil".to_owned()),
+            }),
+            Token::Number(number) => {
+                let parsed_number = number.parse::<f64>().unwrap_or(0.0);
+                Ok(Expr::Literal {
+                    value: Object::Number(parsed_number),
+                })
+            }
+            Token::String(s) => Ok(Expr::Literal {
+                value: Object::String(s.to_string()),
+            }),
+            Token::LeftParen => {
+                if let Some(next_token) = token_iter.next(){
+                    match next_token {
+                        Ok(token) => Expr::from_tokens(token_iter, token),
+                        Err(e) => Err(e),
+                    }
+                } else {
+                Err("Unterminated paren".to_owned())
+                     
+                }
+            }
+            _ => Err("Wrong expression".to_owned()),
+        }
+    }
+}
+
 impl Display for Expr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let temp_str: String;
         let name = match self {
             Expr::Literal { value } => {
                 temp_str = format!("{value}");
+                &temp_str
+            }
+            Expr::Grouping { expression } => {
+                temp_str = format!("(group {expression})");
                 &temp_str
             }
             _ => "Wrong expr",
