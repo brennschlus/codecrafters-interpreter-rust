@@ -4,7 +4,7 @@ use std::iter::Peekable;
 use anyhow::Result;
 
 #[derive(Clone)]
-pub enum TokenType {
+pub enum Token {
     LeftParen,
     RightParen,
     LeftBrace,
@@ -45,59 +45,59 @@ pub enum TokenType {
     Var,
     While,
 }
-pub(crate) enum TokenTypeParseError {
+pub(crate) enum TokenParseError {
     UnexpectedCharacter,
     UnterminatedString,
 }
 
-impl TokenType {
+impl Token {
     fn from_chars(
         current: &char,
         chars: &mut Peekable<std::str::Chars>,
-    ) -> Result<TokenType, TokenTypeParseError> {
+    ) -> Result<Token, TokenParseError> {
         match current {
-            '(' => Ok(TokenType::LeftParen),
-            ')' => Ok(TokenType::RightParen),
-            '{' => Ok(TokenType::LeftBrace),
-            '}' => Ok(TokenType::RightBrace),
-            ',' => Ok(TokenType::Comma),
-            '.' => Ok(TokenType::Dot),
-            '-' => Ok(TokenType::Minus),
-            '+' => Ok(TokenType::Plus),
-            ';' => Ok(TokenType::Semicolon),
-            '*' => Ok(TokenType::Star),
+            '(' => Ok(Token::LeftParen),
+            ')' => Ok(Token::RightParen),
+            '{' => Ok(Token::LeftBrace),
+            '}' => Ok(Token::RightBrace),
+            ',' => Ok(Token::Comma),
+            '.' => Ok(Token::Dot),
+            '-' => Ok(Token::Minus),
+            '+' => Ok(Token::Plus),
+            ';' => Ok(Token::Semicolon),
+            '*' => Ok(Token::Star),
             '!' if { chars.peek().is_some_and(|c| c == &'=') } => {
                 chars.next();
-                Ok(TokenType::BangEqual)
+                Ok(Token::BangEqual)
             }
-            '!' => Ok(TokenType::Bang),
+            '!' => Ok(Token::Bang),
             '=' if { chars.peek().is_some_and(|c| c == &'=') } => {
                 chars.next();
-                Ok(TokenType::EqualEqual)
+                Ok(Token::EqualEqual)
             }
-            '=' => Ok(TokenType::Equal),
+            '=' => Ok(Token::Equal),
             '>' if { chars.peek().is_some_and(|c| c == &'=') } => {
                 chars.next();
-                Ok(TokenType::GreaterEqual)
+                Ok(Token::GreaterEqual)
             }
-            '>' => Ok(TokenType::Greater),
+            '>' => Ok(Token::Greater),
             '<' if { chars.peek().is_some_and(|c| c == &'=') } => {
                 chars.next();
-                Ok(TokenType::LessEqual)
+                Ok(Token::LessEqual)
             }
-            '<' => Ok(TokenType::Less),
-            '/' => Ok(TokenType::Slash),
+            '<' => Ok(Token::Less),
+            '/' => Ok(Token::Slash),
             '\"' => {
                 let mut content = String::new();
 
                 for c in chars {
                     if c == '\"' {
-                        return Ok(TokenType::String(content));
+                        return Ok(Token::String(content));
                     }
                     content.push(c);
                 }
 
-                Err(TokenTypeParseError::UnterminatedString)
+                Err(TokenParseError::UnterminatedString)
             }
 
             c if c.is_ascii_digit() => {
@@ -124,7 +124,7 @@ impl TokenType {
                     }
                 }
 
-                Ok(TokenType::Number(number_string))
+                Ok(Token::Number(number_string))
             }
             c if c.is_alphabetic() || c == &'_' => {
                 let mut identifier = String::from(*c);
@@ -132,27 +132,27 @@ impl TokenType {
                     identifier.push(char);
                 }
                 let token_type = match identifier.as_str() {
-                    "and" => TokenType::And,
-                    "class" => TokenType::Class,
-                    "else" => TokenType::Else,
-                    "false" => TokenType::False,
-                    "for" => TokenType::For,
-                    "fun" => TokenType::Fun,
-                    "if" => TokenType::If,
-                    "nil" => TokenType::Nil,
-                    "or" => TokenType::Or,
-                    "print" => TokenType::Print,
-                    "return" => TokenType::Return,
-                    "super" => TokenType::Super,
-                    "this" => TokenType::This,
-                    "true" => TokenType::True,
-                    "var" => TokenType::Var,
-                    "while" => TokenType::While,
-                    _ => TokenType::Identifier(identifier),
+                    "and" => Token::And,
+                    "class" => Token::Class,
+                    "else" => Token::Else,
+                    "false" => Token::False,
+                    "for" => Token::For,
+                    "fun" => Token::Fun,
+                    "if" => Token::If,
+                    "nil" => Token::Nil,
+                    "or" => Token::Or,
+                    "print" => Token::Print,
+                    "return" => Token::Return,
+                    "super" => Token::Super,
+                    "this" => Token::This,
+                    "true" => Token::True,
+                    "var" => Token::Var,
+                    "while" => Token::While,
+                    _ => Token::Identifier(identifier),
                 };
                 Ok(token_type)
             }
-            _ => Err(TokenTypeParseError::UnexpectedCharacter),
+            _ => Err(TokenParseError::UnexpectedCharacter),
         }
     }
 }
@@ -171,76 +171,60 @@ pub fn format_number_string(string: &String) -> String {
     s
 }
 
-impl Display for TokenType {
+impl Display for Token {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let temp_string: String;
         let name = match &self {
-            TokenType::Eof => "EOF  null",
-            TokenType::LeftParen => "LEFT_PAREN ( null",
-            TokenType::RightParen => "RIGHT_PAREN ) null",
-            TokenType::LeftBrace => "LEFT_BRACE { null",
-            TokenType::RightBrace => "RIGHT_BRACE } null",
-            TokenType::Comma => "COMMA , null",
-            TokenType::Dot => "DOT . null",
-            TokenType::Minus => "MINUS - null",
-            TokenType::Plus => "PLUS + null",
-            TokenType::Semicolon => "SEMICOLON ; null",
-            TokenType::Star => "STAR * null",
-            TokenType::Bang => "BANG ! null",
-            TokenType::BangEqual => "BANG_EQUAL != null",
-            TokenType::Equal => "EQUAL = null",
-            TokenType::EqualEqual => "EQUAL_EQUAL == null",
-            TokenType::Greater => "GREATER > null",
-            TokenType::GreaterEqual => "GREATER_EQUAL >= null",
-            TokenType::Less => "LESS < null",
-            TokenType::LessEqual => "LESS_EQUAL <= null",
-            TokenType::Slash => "SLASH / null",
-            TokenType::String(s) => {
+            Token::Eof => "EOF  null",
+            Token::LeftParen => "LEFT_PAREN ( null",
+            Token::RightParen => "RIGHT_PAREN ) null",
+            Token::LeftBrace => "LEFT_BRACE { null",
+            Token::RightBrace => "RIGHT_BRACE } null",
+            Token::Comma => "COMMA , null",
+            Token::Dot => "DOT . null",
+            Token::Minus => "MINUS - null",
+            Token::Plus => "PLUS + null",
+            Token::Semicolon => "SEMICOLON ; null",
+            Token::Star => "STAR * null",
+            Token::Bang => "BANG ! null",
+            Token::BangEqual => "BANG_EQUAL != null",
+            Token::Equal => "EQUAL = null",
+            Token::EqualEqual => "EQUAL_EQUAL == null",
+            Token::Greater => "GREATER > null",
+            Token::GreaterEqual => "GREATER_EQUAL >= null",
+            Token::Less => "LESS < null",
+            Token::LessEqual => "LESS_EQUAL <= null",
+            Token::Slash => "SLASH / null",
+            Token::String(s) => {
                 temp_string = format!("STRING \"{s}\" {s}");
-                temp_string.as_str()
+                &temp_string
             }
-            TokenType::Number(n) => {
+            Token::Number(n) => {
                 temp_string = format!("NUMBER {n} {}", format_number_string(n));
-                temp_string.as_str()
+                &temp_string
             }
-            TokenType::Identifier(i) => {
+            Token::Identifier(i) => {
                 temp_string = format!("IDENTIFIER {i} null");
-                temp_string.as_str()
+                &temp_string
             }
-            TokenType::And => "AND and null",
-            TokenType::Class => "CLASS class null",
-            TokenType::Else => "ELSE else null",
-            TokenType::False => "FALSE false null",
-            TokenType::For => "FOR for null",
-            TokenType::Fun => "FUN fun null",
-            TokenType::If => "IF if null",
-            TokenType::Nil => "NIL nil null",
-            TokenType::Or => "OR or null",
-            TokenType::Print => "PRINT print null",
-            TokenType::Return => "RETURN return null",
-            TokenType::Super => "SUPER super null",
-            TokenType::This => "THIS this null",
-            TokenType::True => "TRUE true null",
-            TokenType::Var => "VAR var null",
-            TokenType::While => "WHILE while null",
+            Token::And => "AND and null",
+            Token::Class => "CLASS class null",
+            Token::Else => "ELSE else null",
+            Token::False => "FALSE false null",
+            Token::For => "FOR for null",
+            Token::Fun => "FUN fun null",
+            Token::If => "IF if null",
+            Token::Nil => "NIL nil null",
+            Token::Or => "OR or null",
+            Token::Print => "PRINT print null",
+            Token::Return => "RETURN return null",
+            Token::Super => "SUPER super null",
+            Token::This => "THIS this null",
+            Token::True => "TRUE true null",
+            Token::Var => "VAR var null",
+            Token::While => "WHILE while null",
         };
         write!(f, "{}", name)
-    }
-}
-
-pub struct Token {
-    pub token_type: TokenType,
-}
-
-impl Display for Token {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", self.token_type)
-    }
-}
-
-impl Token {
-    pub fn new(token_type: TokenType) -> Token {
-        Token { token_type }
     }
 }
 
@@ -251,21 +235,21 @@ fn skip_char(char: char) -> bool {
 pub fn tokenize(input: &str, line: usize) -> Vec<Result<Token, String>> {
     let mut token_vec: Vec<Result<Token, String>> = vec![];
     let mut iter = input.chars().peekable();
-    while let Some(token) = iter.next() {
-        if skip_char(token) {
+    while let Some(char) = iter.next() {
+        if skip_char(char) {
             continue;
         }
-        if token == '/' && iter.peek() == Some(&'/') {
+        if char == '/' && iter.peek() == Some(&'/') {
             break;
         }
-        let token_type = TokenType::from_chars(&token, &mut iter);
-        match token_type {
-            Ok(token_type) => token_vec.push(Ok(Token::new(token_type))),
-            Err(TokenTypeParseError::UnexpectedCharacter) => token_vec.push(Err(format!(
+        let token = Token::from_chars(&char, &mut iter);
+        match token {
+            Ok(token) => token_vec.push(Ok(token)),
+            Err(TokenParseError::UnexpectedCharacter) => token_vec.push(Err(format!(
                 "[line {}] Error: Unexpected character: {}",
-                line, token
+                line, char
             ))),
-            Err(TokenTypeParseError::UnterminatedString) => {
+            Err(TokenParseError::UnterminatedString) => {
                 token_vec.push(Err(format!("[line {line}] Error: Unterminated string.")))
             }
         };

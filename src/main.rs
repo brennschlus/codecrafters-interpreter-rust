@@ -2,7 +2,7 @@ pub mod parser;
 pub mod scanner;
 
 use parser::primary;
-use scanner::{tokenize, Token, TokenType};
+use scanner::{tokenize, Token};
 use std::env;
 use std::fs;
 use std::process::exit;
@@ -24,7 +24,8 @@ fn main() {
     let token_lines = file_contents
         .lines()
         .enumerate()
-        .flat_map(|(number, line)| tokenize(line, number + 1));
+        .flat_map(|(number, line)| tokenize(line, number + 1))
+        .peekable();
 
     match command.as_str() {
         "tokenize" => {
@@ -38,16 +39,13 @@ fn main() {
                     }
                 }
             }
-            let eof_token = Token::new(TokenType::Eof);
+            let eof_token = Token::Eof;
 
             println!("{eof_token}");
             exit(exit_code);
         }
         "parse" => {
-            let exprs = token_lines.map(|token| match token {
-                Ok(t) => primary(&t.token_type),
-                Err(s) => Err(s),
-            });
+            let exprs = primary(token_lines);
 
             for expr in exprs {
                 match expr {
