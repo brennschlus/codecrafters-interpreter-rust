@@ -89,14 +89,24 @@ impl Expr {
                 value: Object::String(s.to_string()),
             }),
             Token::LeftParen => {
-                if let Some(next_token) = token_iter.next(){
-                    match next_token {
-                        Ok(token) => Expr::from_tokens(token_iter, token),
-                        Err(e) => Err(e),
+                let next_expr = {
+                    if let Some(next_token) = token_iter.next() {
+                        match next_token {
+                            Ok(token) => Expr::from_tokens(token_iter, token),
+                            Err(e) => Err(e),
+                        }
+                    } else {
+                        Err("Unterminated paren".to_owned())
                     }
-                } else {
-                Err("Unterminated paren".to_owned())
-                     
+                };
+                match token_iter.next() {
+                    Some(Ok(Token::RightParen)) => Ok(Expr::Grouping {
+                        //TODO(me): correct path when next_expr is Err
+                        expression: Box::new(next_expr.unwrap_or(Expr::Literal {
+                            value: Object::String("nil".to_owned()),
+                        })),
+                    }),
+                    _ => Err("pare".to_owned()),
                 }
             }
             _ => Err("Wrong expression".to_owned()),
