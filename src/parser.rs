@@ -2,7 +2,7 @@ use std::{fmt::Display, iter::Peekable};
 
 use crate::scanner::Token;
 
-pub fn primary<T>(token_iter: &mut Peekable<T>) -> Vec<Result<Expr, String>>
+pub fn parse_tokens<T>(token_iter: &mut Peekable<T>) -> Vec<Result<Expr, String>>
 where
     T: Iterator<Item = Result<Token, String>>,
 {

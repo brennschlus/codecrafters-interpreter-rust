@@ -1,7 +1,7 @@
 pub mod parser;
 pub mod scanner;
 
-use parser::primary;
+use parser::parse_tokens;
 use scanner::{tokenize, Token};
 use std::env;
 use std::fs;
@@ -45,7 +45,7 @@ fn main() {
             exit(exit_code);
         }
         "parse" => {
-            let exprs = primary(&mut token_lines);
+            let exprs = parse_tokens(&mut token_lines);
 
             for expr in exprs {
                 match expr {
