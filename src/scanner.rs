@@ -156,7 +156,7 @@ impl Token {
         }
     }
 }
-pub fn format_number_string(string: &String) -> String {
+pub fn format_number_string(string: &str) -> String {
     let mut s = String::from(string);
     if !s.contains('.') {
         s.push_str(".0")
@@ -200,7 +200,7 @@ impl Display for Token {
                 &temp_string
             }
             Token::Number(n) => {
-                temp_string = format!("NUMBER {n} {}", format_number_string(n));
+                temp_string = format!("NUMBER {n} {}", format_number_string(&n));
                 &temp_string
             }
             Token::Identifier(i) => {
@@ -239,7 +239,7 @@ pub fn tokenize(input: &str, line: usize) -> Vec<Result<Token, String>> {
         if skip_char(char) {
             continue;
         }
-        if char == '/' && iter.peek() == Some(&'/') {
+        if char == '/' && iter.peek().is_some_and(|c| c == &'/') {
             break;
         }
         let token = Token::from_chars(&char, &mut iter);
