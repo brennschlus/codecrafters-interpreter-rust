@@ -109,6 +109,15 @@ impl Expr {
                     _ => Err("pare".to_owned()),
                 }
             }
+            Token::Bang | Token::Minus => {
+                let next_token = token_iter.next().ok_or_else(|| "Expected an operand")??;
+                let next_expr = Expr::from_tokens(token_iter, next_token)?;
+                return Ok(Expr::Unary {
+                    operator: token,
+                    right: Box::new(next_expr),
+                });
+            }
+
             _ => Err("Wrong expression".to_owned()),
         }
     }
@@ -116,19 +125,12 @@ impl Expr {
 
 impl Display for Expr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let temp_str: String;
-        let name = match self {
-            Expr::Literal { value } => {
-                temp_str = format!("{value}");
-                &temp_str
-            }
-            Expr::Grouping { expression } => {
-                temp_str = format!("(group {expression})");
-                &temp_str
-            }
-            _ => "Wrong expr",
-        };
-        write!(f, "{}", name)
+        match self {
+            Expr::Literal { value } => write!(f, "{}", value),
+            Expr::Grouping { expression } => write!(f, "(group {})", expression),
+            Expr::Unary { operator, right } => write!(f, "({} {})", operator.raw_symbol(), right),
+            _ => write!(f, "Wrong expr"),
+        }
     }
 }
 pub enum Object {
@@ -138,14 +140,9 @@ pub enum Object {
 
 impl Display for Object {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let temp_str: String;
-        let name = match self {
-            Object::String(s) => &s,
-            Object::Number(number) => {
-                temp_str = format!("{number:?}");
-                &temp_str
-            }
-        };
-        write!(f, "{name}")
+        match self {
+            Object::String(s) => write!(f, "{s}"),
+            Object::Number(number) => write!(f, "{number:?}"),
+        }
     }
 }

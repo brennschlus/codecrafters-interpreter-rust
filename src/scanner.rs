@@ -155,6 +155,13 @@ impl Token {
             _ => Err(TokenParseError::UnexpectedCharacter),
         }
     }
+    pub fn raw_symbol(&self) -> String {
+        match &self {
+            Token::Bang => "!".to_owned(),
+            Token::Minus => "-".to_owned(),
+            _ => "nill".to_owned(),
+        }
+    }
 }
 pub fn format_number_string(string: &str) -> String {
     let mut s = String::from(string);
@@ -243,16 +250,14 @@ pub fn tokenize(input: &str, line: usize) -> Vec<Result<Token, String>> {
             break;
         }
         let token = Token::from_chars(&char, &mut iter);
-        match token {
-            Ok(token) => token_vec.push(Ok(token)),
-            Err(TokenParseError::UnexpectedCharacter) => token_vec.push(Err(format!(
-                "[line {}] Error: Unexpected character: {}",
-                line, char
-            ))),
-            Err(TokenParseError::UnterminatedString) => {
-                token_vec.push(Err(format!("[line {line}] Error: Unterminated string.")))
+        token_vec.push(token.map_err(|e| match e {
+            TokenParseError::UnexpectedCharacter => {
+                format!("[line {}] Error: Unexpected character: {}", line, char)
             }
-        };
+            TokenParseError::UnterminatedString => {
+                format!("[line {line}] Error: Unterminated string.")
+            }
+        }));
     }
 
     token_vec
