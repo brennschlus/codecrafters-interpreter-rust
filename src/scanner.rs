@@ -1,8 +1,6 @@
 use std::fmt::Display;
 use std::iter::Peekable;
 
-use anyhow::Result;
-
 #[derive(Clone, PartialEq, Eq)]
 pub enum Token {
     LeftParen,
@@ -66,26 +64,38 @@ impl Token {
             '+' => Ok(Token::Plus),
             ';' => Ok(Token::Semicolon),
             '*' => Ok(Token::Star),
-            '!' if { chars.peek().is_some_and(|c| c == &'=') } => {
-                chars.next();
-                Ok(Token::BangEqual)
+            '!' => {
+                if chars.peek() == Some(&'=') {
+                    chars.next();
+                    Ok(Token::BangEqual)
+                } else {
+                    Ok(Token::Bang)
+                }
             }
-            '!' => Ok(Token::Bang),
-            '=' if { chars.peek().is_some_and(|c| c == &'=') } => {
-                chars.next();
-                Ok(Token::EqualEqual)
+            '=' => {
+                if chars.peek() == Some(&'=') {
+                    chars.next();
+                    Ok(Token::EqualEqual)
+                } else {
+                    Ok(Token::Equal)
+                }
             }
-            '=' => Ok(Token::Equal),
-            '>' if { chars.peek().is_some_and(|c| c == &'=') } => {
-                chars.next();
-                Ok(Token::GreaterEqual)
+            '>' => {
+                if chars.peek() == Some(&'=') {
+                    chars.next();
+                    Ok(Token::GreaterEqual)
+                } else {
+                    Ok(Token::Greater)
+                }
             }
-            '>' => Ok(Token::Greater),
-            '<' if { chars.peek().is_some_and(|c| c == &'=') } => {
-                chars.next();
-                Ok(Token::LessEqual)
+            '<' => {
+                if chars.peek() == Some(&'=') {
+                    chars.next();
+                    Ok(Token::LessEqual)
+                } else {
+                    Ok(Token::Less)
+                }
             }
-            '<' => Ok(Token::Less),
             '/' => Ok(Token::Slash),
             '\"' => {
                 let mut content = String::new();
@@ -180,58 +190,47 @@ pub fn format_number_string(string: &str) -> String {
 
 impl Display for Token {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let temp_string: String;
-        let name = match &self {
-            Token::Eof => "EOF  null",
-            Token::LeftParen => "LEFT_PAREN ( null",
-            Token::RightParen => "RIGHT_PAREN ) null",
-            Token::LeftBrace => "LEFT_BRACE { null",
-            Token::RightBrace => "RIGHT_BRACE } null",
-            Token::Comma => "COMMA , null",
-            Token::Dot => "DOT . null",
-            Token::Minus => "MINUS - null",
-            Token::Plus => "PLUS + null",
-            Token::Semicolon => "SEMICOLON ; null",
-            Token::Star => "STAR * null",
-            Token::Bang => "BANG ! null",
-            Token::BangEqual => "BANG_EQUAL != null",
-            Token::Equal => "EQUAL = null",
-            Token::EqualEqual => "EQUAL_EQUAL == null",
-            Token::Greater => "GREATER > null",
-            Token::GreaterEqual => "GREATER_EQUAL >= null",
-            Token::Less => "LESS < null",
-            Token::LessEqual => "LESS_EQUAL <= null",
-            Token::Slash => "SLASH / null",
-            Token::String(s) => {
-                temp_string = format!("STRING \"{s}\" {s}");
-                &temp_string
-            }
-            Token::Number(n) => {
-                temp_string = format!("NUMBER {n} {}", format_number_string(&n));
-                &temp_string
-            }
-            Token::Identifier(i) => {
-                temp_string = format!("IDENTIFIER {i} null");
-                &temp_string
-            }
-            Token::And => "AND and null",
-            Token::Class => "CLASS class null",
-            Token::Else => "ELSE else null",
-            Token::False => "FALSE false null",
-            Token::For => "FOR for null",
-            Token::Fun => "FUN fun null",
-            Token::If => "IF if null",
-            Token::Nil => "NIL nil null",
-            Token::Or => "OR or null",
-            Token::Print => "PRINT print null",
-            Token::Return => "RETURN return null",
-            Token::Super => "SUPER super null",
-            Token::This => "THIS this null",
-            Token::True => "TRUE true null",
-            Token::Var => "VAR var null",
-            Token::While => "WHILE while null",
-        };
-        write!(f, "{}", name)
+        match &self {
+            Token::Eof => write!(f, "EOF  null"),
+            Token::LeftParen => write!(f, "LEFT_PAREN ( null"),
+            Token::RightParen => write!(f, "RIGHT_PAREN ) null"),
+            Token::LeftBrace => write!(f, "LEFT_BRACE {{ null"),
+            Token::RightBrace => write!(f, "RIGHT_BRACE }} null"),
+            Token::Comma => write!(f, "COMMA , null"),
+            Token::Dot => write!(f, "DOT . null"),
+            Token::Minus => write!(f, "MINUS - null"),
+            Token::Plus => write!(f, "PLUS + null"),
+            Token::Semicolon => write!(f, "SEMICOLON ; null"),
+            Token::Star => write!(f, "STAR * null"),
+            Token::Bang => write!(f, "BANG ! null"),
+            Token::BangEqual => write!(f, "BANG_EQUAL != null"),
+            Token::Equal => write!(f, "EQUAL = null"),
+            Token::EqualEqual => write!(f, "EQUAL_EQUAL == null"),
+            Token::Greater => write!(f, "GREATER > null"),
+            Token::GreaterEqual => write!(f, "GREATER_EQUAL >= null"),
+            Token::Less => write!(f, "LESS < null"),
+            Token::LessEqual => write!(f, "LESS_EQUAL <= null"),
+            Token::Slash => write!(f, "SLASH / null"),
+            Token::String(s) => write!(f, "STRING \"{s}\" {s}"),
+            Token::Number(n) => write!(f, "NUMBER {n} {}", format_number_string(&n)),
+            Token::Identifier(i) => write!(f, "IDENTIFIER {i} null"),
+            Token::And => write!(f, "AND and null"),
+            Token::Class => write!(f, "CLASS class null"),
+            Token::Else => write!(f, "ELSE else null"),
+            Token::False => write!(f, "FALSE false null"),
+            Token::For => write!(f, "FOR for null"),
+            Token::Fun => write!(f, "FUN fun null"),
+            Token::If => write!(f, "IF if null"),
+            Token::Nil => write!(f, "NIL nil null"),
+            Token::Or => write!(f, "OR or null"),
+            Token::Print => write!(f, "PRINT print null"),
+            Token::Return => write!(f, "RETURN return null"),
+            Token::Super => write!(f, "SUPER super null"),
+            Token::This => write!(f, "THIS this null"),
+            Token::True => write!(f, "TRUE true null"),
+            Token::Var => write!(f, "VAR var null"),
+            Token::While => write!(f, "WHILE while null"),
+        }
     }
 }
 
@@ -240,7 +239,7 @@ fn skip_char(char: char) -> bool {
 }
 
 pub fn tokenize(input: &str, line: usize) -> Vec<Result<Token, String>> {
-    let mut token_vec: Vec<Result<Token, String>> = vec![];
+    let mut token_vec = Vec::new();
     let mut iter = input.chars().peekable();
     while let Some(char) = iter.next() {
         if skip_char(char) {
